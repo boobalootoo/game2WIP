@@ -6,7 +6,6 @@
     <title>Species Identification</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Silkscreen&display=swap');
-        
         body {
             font-family: 'Silkscreen', sans-serif;
             background-color: black;
@@ -20,11 +19,17 @@
         }
         .box {
             border: 2px solid cyan;
-            padding: 20px;
+            padding: 0;
             margin: 10px;
             display: inline-block;
             width: 400px;
             height: 200px;
+            position: relative;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         .button {
             border: 2px solid cyan;
@@ -57,10 +62,11 @@
 <body>
     <div class="container">
         <h1>SPECIES IDENTIFICATION</h1>
-        <div class="box"></div>
+        <div class="box">
+            <video id="camera-feed" autoplay playsinline></video>
+        </div>
         <button class="button">TOGGLE PIXELATION</button>
         <button class="button" onclick="openCamera(this)">📷 TAKE PHOTO</button>
-        
         <table>
             <tr>
                 <th>Username</th>
@@ -73,14 +79,12 @@
             <tbody id="species-records">
                 <tr>
                     <td><input type="text" placeholder="Enter username"></td>
-                    <td>
-                        <input type="file" accept="image/*">
-                        <br>
-                        <button onclick="openCamera(this)">Use Camera</button>
-                    </td>
+                    <td> <input type="file" accept="image/*"> <br> </td>
                     <td><input type="text" placeholder="Species you think it is"></td>
-                    <td><input type="text" class="date" placeholder="Enter manually"> <button onclick="getDate(this)">USE DEVICE DATE</button></td>
-                    <td><input type="text" class="place" placeholder="Enter manually"> <button onclick="getLocation(this)">USE DEVICE LOCATION</button></td>
+                    <td><input type="text" class="date" placeholder="Enter manually"> 
+                        <button onclick="getDate(this)">USE DEVICE DATE</button></td>
+                    <td><input type="text" class="place" placeholder="Enter manually"> 
+                        <button onclick="getLocation(this)">USE DEVICE LOCATION</button></td>
                     <td><button class="button submit-btn">SUBMIT</button></td>
                 </tr>
             </tbody>
@@ -88,6 +92,19 @@
         <button class="button add-row">ADD ROW</button>
         <button class="button" onclick="window.location.href='map.html';">GO STRAIGHT TO MAP</button>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const videoElement = document.getElementById('camera-feed');
+                videoElement.srcObject = stream;
+            } catch (error) {
+                console.error("Error accessing camera:", error);
+            }
+        }
+
+        window.onload = startCamera;
+    </script>
 </body>
 </html>

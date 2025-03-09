@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Pixel World</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <!-- html2canvas for pixelation overlay -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- Silkscreen font -->
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      color: #fff;
+      text-align: center;
+      font-family: 'Silkscreen', cursive;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      margin: 20px 0 10px;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 200px 600px 200px;
+      grid-template-rows: auto auto;
+      gap: 20px;
+      width: 90%;
+      max-width: 1200px;
+    }
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background-color: rgba(0, 255, 204, 0.2);
+      padding: 10px;
+      border-radius: 10px;
+      min-height: 200px;
+      width: 200px;
+    }
+    .controls, .section {
+      text-align: center;
+    }
+    button {
+      border: 2px solid #00ffcc;
+      background: transparent;
+      color: #00ffcc;
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background-color: #00ffcc;
+      color: #000;
+    }
+    .collapsible-content {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      margin-top: 5px;
+    }
+    .collapsible.active + .collapsible-content {
+      display: flex;
+    }
+    #mapContainer {
+      width: 600px;
+      height: 600px;
+      border: 2px solid #00ffcc;
+      position: relative;
+      overflow: hidden;
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0; left: 0;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <h1>MY PIXEL WORLD</h1>
+  <div class="container">
+    <div>
+      <div class="section">
+        <h2>Fellow Travellers</h2>
+        <button>Friends maps</button>
+        <button>Add friend</button>
+        <button>Battle</button>
+        <button>Invite friends</button>
+        <button>Share your discoveries</button>
+        <button>My profile</button>
+        <button>QR</button>
+        <button>My stats</button>
+      </div>
+      <div class="section">
+        <h2>My Sightings</h2>
+        <button>Challenges</button>
+        <button>Progress</button>
+      </div>
+    </div>
+    <div>
+      <div class="controls">
+        <button id="toggleOverlay">Toggle Pixelation Overlay</button>
+        <button id="zoomIn">X10 ZOOM IN</button>
+        <button id="zoomOut">X10 ZOOM OUT</button>
+        <button id="undo">UNDO</button>
+        <button id="cameraButton">Open Camera</button>
+      </div>
+      <div id="mapContainer">
+        <div id="map"></div>
+      </div>
+    </div>
+    <div>
+      <div class="section">
+        <h2>Inventory</h2>
+        <button class="collapsible">Unlocked minigames</button>
+        <div class="collapsible-content">
+          <button onclick="window.location.href='https://boobalootoo.github.io/conkersminigame/'">Conkers</button>
+          <button>Foodweb Game</button>
+          <button>Virtual Pets for Any Species</button>
+          <button>Spore Game (Fungi)</button>
+          <button>Root Game (Trees)</button>
+          <button>Pollination Game (Bees, Butterflies, Flowers)</button>
+          <button>Bee Vision Filter</button>
+          <button>Natural Sounds Mixer</button>
+          <button>Squirrel Nut Hiding Game</button>
+          <button>Squirrel Competition Game (Red vs Grey)</button>
+          <button>Nitrogen Fixation Game (Legumes)</button>
+          <button>Soil & Water Impact Game</button>
+          <button>Invasive Species Game</button>
+          <button>Oak Life Cycle Game</button>
+          <button>Starling Murmuration Music Visualiser</button>
+          <button>Conservation Support Mini Games</button>
+          <button>Tetris Animal Builder</button>
+          <button>Puzzle Block Game</button>
+        </div>
+      </div>
+      <div class="section">
+        <h2>My Wishlist</h2>
+        <button>Where are they?</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Leaflet
+    const map = L.map('map', {
+      center: [54.5, -2.5],
+      zoom: 6,
+      maxZoom: 25,
+      minZoom: 6,
+      layers: [
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          attribution: 'Tiles © Esri — Source: Esri, etc.',
+          maxNativeZoom: 18
+        })
+      ]
+    });
+
+    // Collapsible button functionality
+    document.querySelectorAll(".collapsible").forEach(button => {
+      button.addEventListener("click", () => {
+        button.classList.toggle("active");
+      });
+    });
+  </script>
+</body>
+</html>

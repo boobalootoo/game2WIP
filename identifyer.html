@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Species Identification</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.2.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Silkscreen&display=swap');
         body {
@@ -16,39 +20,95 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+        }
+        .main-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 80%;
         }
         .box {
             border: 2px solid cyan;
-            padding: 0;
-            margin: 10px;
-            display: inline-block;
-            width: 400px;
-            height: 200px;
+            width: 320px;
+            height: 240px;
             position: relative;
+            overflow: hidden;
+            margin: 10px;
         }
-        video {
+        video, canvas {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
         .button {
             border: 2px solid cyan;
             background: black;
             color: cyan;
-            padding: 10px;
+            padding: 10px 20px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             margin: 5px;
+            display: block;
+            width: 220px;
+        }
+        .button:hover {
+            background-color: cyan;
+            color: black;
+        }
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .results-box {
+            border: 2px solid cyan;
+            padding: 10px;
+            width: 220px;
+            text-align: left;
+            margin-top: 10px;
+        }
+        .results-box div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px;
+            border-bottom: 1px solid cyan;
+        }
+        .results-box img {
+            width: 40px;
+            height: 40px;
+            border: 1px solid cyan;
+        }
+        .preview-box {
+            border: 2px solid cyan;
+            width: 160px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .preview-box img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .bottom-section {
+            margin-top: 20px;
+            width: 90%;
         }
         table {
             border-collapse: collapse;
-            width: 90%;
-            margin-top: 20px;
+            width: 100%;
             color: cyan;
+            margin-top: 10px;
         }
         th, td {
             border: 1px solid cyan;
-            padding: 10px;
+            padding: 8px;
             text-align: center;
         }
         input, button {
@@ -60,51 +120,131 @@
     </style>
 </head>
 <body>
+
     <div class="container">
         <h1>SPECIES IDENTIFICATION</h1>
-        <div class="box">
-            <video id="camera-feed" autoplay playsinline></video>
+
+        <div class="main-content">
+            <!-- Left Side - Identification and Results -->
+            <div class="side-panel">
+                <button class="button" onclick="identifySpecies()">IDENTIFY SPECIES</button>
+                <div class="results-box" id="results">
+                    <div><strong>MAGPIE</strong> - 39.85% <img src="magpie.jpg" alt="Magpie"></div>
+                    <div><strong>BLACK GROUSE</strong> - 0.08% <img src="blackgrouse.jpg" alt="Black Grouse"></div>
+                    <div><strong>JAY</strong> - 0.03% <img src="jay.jpg" alt="Jay"></div>
+                </div>
+                <button class="button" onclick="openGoogleLens()">USE GOOGLE LENS</button>
+                <button class="button">Browse identification guides</button>
+            </div>
+
+            <!-- Center - Live Camera -->
+            <div class="box">
+                <video id="camera-feed" autoplay playsinline></video>
+                <canvas id="pixel-canvas" style="display: none;"></canvas>
+            </div>
+
+            <!-- Right Side - Pixelation & Preview -->
+            <div class="side-panel">
+                <button class="button" onclick="togglePixelation()">TOGGLE PIXELATION</button>
+                <button class="button" onclick="takePicture()">Take Picture</button>
+                <div class="button">Preview image of last image taken or image uploaded</div>
+                <div class="preview-box">
+                    <img id="preview-image" src="magpie.jpg" alt="Preview">
+                </div>
+            </div>
         </div>
-        <button class="button">TOGGLE PIXELATION</button>
-        <button class="button" onclick="openCamera(this)">📷 TAKE PHOTO</button>
-        <table>
-            <tr>
-                <th>Username</th>
-                <th>Picture</th>
-                <th>Species Name</th>
-                <th>Date</th>
-                <th>Place</th>
-                <th>Submit</th>
-            </tr>
-            <tbody id="species-records">
+
+        <!-- Bottom Section - Table and Buttons -->
+        <div class="bottom-section">
+            <table>
                 <tr>
-                    <td><input type="text" placeholder="Enter username"></td>
-                    <td> <input type="file" accept="image/*"> <br> </td>
-                    <td><input type="text" placeholder="Species you think it is"></td>
-                    <td><input type="text" class="date" placeholder="Enter manually"> 
-                        <button onclick="getDate(this)">USE DEVICE DATE</button></td>
-                    <td><input type="text" class="place" placeholder="Enter manually"> 
-                        <button onclick="getLocation(this)">USE DEVICE LOCATION</button></td>
-                    <td><button class="button submit-btn">SUBMIT</button></td>
+                    <th>Username</th>
+                    <th>Picture</th>
+                    <th>Species Name</th>
+                    <th>Date</th>
+                    <th>Place</th>
+                    <th>Submit</th>
                 </tr>
-            </tbody>
-        </table>
-        <button class="button add-row">ADD ROW</button>
-        <button class="button" onclick="window.location.href='map.html';">GO STRAIGHT TO MAP</button>
+                <tbody>
+                    <tr>
+                        <td><input type="text" placeholder="Enter username"></td>
+                        <td>
+                            <input type="file" accept="image/*" id="imageInput">
+                            <button onclick="takePicture()">Use Camera</button>
+                        </td>
+                        <td><input type="text" placeholder="Species you think it is"></td>
+                        <td><input type="text" placeholder="Enter manually">
+                            <button>USE DEVICE DATE</button>
+                        </td>
+                        <td><input type="text" placeholder="Enter manually">
+                            <button>USE DEVICE LOCATION</button>
+                        </td>
+                        <td><button class="button">SUBMIT</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button class="button">ADD ROW</button>
+            <button class="button" onclick="window.location.href='map.html';">GO STRAIGHT TO MAP</button>
+        </div>
+
     </div>
 
     <script>
+        let isPixelated = false;
+        let videoElement = document.getElementById('camera-feed');
+        let canvas = document.getElementById('pixel-canvas');
+        let ctx = canvas.getContext('2d');
+
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                const videoElement = document.getElementById('camera-feed');
                 videoElement.srcObject = stream;
+                requestAnimationFrame(updateCanvas);
             } catch (error) {
                 console.error("Error accessing camera:", error);
             }
         }
 
+        function togglePixelation() {
+            isPixelated = !isPixelated;
+            canvas.style.display = isPixelated ? 'block' : 'none';
+            videoElement.style.display = isPixelated ? 'none' : 'block';
+        }
+
+        function updateCanvas() {
+            if (isPixelated) {
+                let pixelSize = 10; 
+                let w = canvas.width = videoElement.videoWidth;
+                let h = canvas.height = videoElement.videoHeight;
+
+                ctx.drawImage(videoElement, 0, 0, w, h);
+                let imageData = ctx.getImageData(0, 0, w, h);
+                let data = imageData.data;
+
+                for (let y = 0; y < h; y += pixelSize) {
+                    for (let x = 0; x < w; x += pixelSize) {
+                        let i = (y * w + x) * 4;
+                        let r = data[i];
+                        let g = data[i + 1];
+                        let b = data[i + 2];
+
+                        for (let dy = 0; dy < pixelSize; dy++) {
+                            for (let dx = 0; dx < pixelSize; dx++) {
+                                let j = ((y + dy) * w + (x + dx)) * 4;
+                                data[j] = r;
+                                data[j + 1] = g;
+                                data[j + 2] = b;
+                            }
+                        }
+                    }
+                }
+                ctx.putImageData(imageData, 0, 0);
+            }
+            requestAnimationFrame(updateCanvas);
+        }
+
         window.onload = startCamera;
     </script>
+
 </body>
 </html>
